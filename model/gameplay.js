@@ -50,8 +50,6 @@ class GamePlay {
             console.log(`(${i}) | ${pieces[i].name} - ${numberToString(pieces[i].x)}${pieces[i].y}`);
         }
     }
-
-
 }
 
 module.exports = GamePlay;

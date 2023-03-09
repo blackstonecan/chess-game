@@ -33,11 +33,11 @@ class Pawn extends Piece {
         if (color == 'W') {
             return new Rule([
                 new Movement("N", 2)
-            ]);
+            ], false);
         } else if (color == 'B') {
             return new Rule([
                 new Movement("S", 2)
-            ]);
+            ], false);
         } else throw new Error("Invalid color");
     }
 
@@ -67,11 +67,11 @@ class Pawn extends Piece {
         if (color == 'W') {
             return new Rule([
                 new Movement("N", 1)
-            ]);
+            ], false);
         } else if (color == 'B') {
             return new Rule([
                 new Movement("S", 1)
-            ]);
+            ], false);
         } else throw new Error("Invalid color");
     }
 

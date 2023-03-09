@@ -116,7 +116,7 @@ class Board {
     }
 
     showRuleSquares(rule, square) {
-        if (square.piece == null){
+        if (square.piece == null) {
             console.log("***************************");
             this.printBoard();
             console.log(square);
@@ -165,7 +165,7 @@ class Board {
                 if (movement.include) {
                     let target = this.getSquare(x, y);
                     if (target.piece) {
-                        if (target.piece.color != square.piece.color) squares.push(target);
+                        if (target.piece.color != square.piece.color && rule.isAttack) squares.push(target);
                         break;
                     } else {
                         squares.push(target);
@@ -240,6 +240,7 @@ class Board {
     }
 
     makeMove(piece, x, y) {
+        if (this.getSquare(x, y).piece) this.deletePiece(this.getSquare(x, y).piece);
         this.getSquare(piece.x, piece.y).piece = null;
         this.getSquare(x, y).piece = piece;
         this.updatePiece(piece);
@@ -263,7 +264,7 @@ class Board {
         piece = board.getPieces(piece.color).find(p => p.x == piece.x && p.y == piece.y);
         board.makeMove(piece, x, y);
         board.calculateTargets();
-        return board.isCheck(piece.color == 'W' ? 'B' : 'W');
+        return board.isCheck(piece.color);
     }
 
     updatePiece(piece) {
@@ -278,6 +279,24 @@ class Board {
             for (let i = 0; i < this.black.pieces.length; i++) {
                 if (this.black.pieces[i].x == piece.x && this.black.pieces[i].y == piece.y && this.black.pieces[i].letter == piece.letter) {
                     this.black.pieces[i] = piece;
+                    break;
+                }
+            }
+        } else throw new Error(`Invalid piece color: ${piece.color}`);
+    }
+
+    deletePiece(piece) {
+        if (piece.color == 'W') {
+            for (let i = 0; i < this.white.pieces.length; i++) {
+                if (this.white.pieces[i].x == piece.x && this.white.pieces[i].y == piece.y && this.white.pieces[i].letter == piece.letter) {
+                    this.white.pieces.splice(i, 1);
+                    break;
+                }
+            }
+        } else if (piece.color == 'B') {
+            for (let i = 0; i < this.black.pieces.length; i++) {
+                if (this.black.pieces[i].x == piece.x && this.black.pieces[i].y == piece.y && this.black.pieces[i].letter == piece.letter) {
+                    this.black.pieces.splice(i, 1);
                     break;
                 }
             }

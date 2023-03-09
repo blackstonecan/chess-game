@@ -7,8 +7,9 @@ class Movement {
 }
 
 class Rule{
-    constructor(movements) {
+    constructor(movements, isAttack = true) {
         this.movements = movements;
+        this.isAttack = isAttack;
     }    
 }
 
