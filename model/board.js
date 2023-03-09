@@ -1,3 +1,4 @@
+const { Rule } = require("./move");
 const { Pawn, Rook, Bishop, Knight, Queen, King } = require("./piece");
 
 class Square {
@@ -24,6 +25,7 @@ class Board {
         if (!clean) {
             this.initWhitePieces();
             this.initBlackPieces();
+            this.calculateTargets();
         }
     }
 
@@ -109,12 +111,20 @@ class Board {
     }
 
     getSquare(x, y) {
-        let square = this.squares.find(s => s.x == x && s.y == y)
-        if (!square) throw new Error(`Square (${x}, ${y}) does not exist`);
-        return square;
+        if (!this.squares.find(s => s.x == x && s.y == y)) throw new Error(`Square (${x}, ${y}) does not exist`);
+        return this.squares.find(s => s.x == x && s.y == y);
     }
 
     showRuleSquares(rule, square) {
+        if (square.piece == null){
+            console.log("***************************");
+            this.printBoard();
+            console.log(square);
+            console.log(rule);
+
+            throw new Error('Square does not have a piece');
+        }
+
         let squares = [];
         let [x, y] = [square.x, square.y];
 
@@ -168,7 +178,7 @@ class Board {
 
     putPiece(piece, x, y) {
         this.getSquare(x, y).piece = piece;
-        piece.put(x, y);
+        piece.put(x, y, this);
         if (piece.color == 'W') this.white.pieces.push(piece);
         else if (piece.color == 'B') this.black.pieces.push(piece);
         else throw new Error(`Invalid piece color: ${piece.color}`);
@@ -186,7 +196,7 @@ class Board {
             }
             board += "\n";
         }
-        board += "  A B C D E F G H";
+        board += "  A B C D E F G H\n";
 
         console.log(board);
     }
@@ -201,22 +211,26 @@ class Board {
         return board;
     }
 
-    calculateTargets(color) {
-        let pieces;
-        if (color == 'W') pieces = this.white.pieces;
-        else if (color == 'B') pieces = this.black.pieces;
-        else throw new Error(`Invalid color: ${color}`);
+    calculateTargets() {
+        for (let color of ["W", "B"]) {
+            let pieces;
+            if (color == 'W') pieces = this.white.pieces;
+            else if (color == 'B') pieces = this.black.pieces;
+            else throw new Error(`Invalid color: ${color}`);
 
-        let targets = [];
+            let targets = [];
 
-        for (let piece of pieces) {
-            let squares = piece.getTargetSquares(this);
-            for (let square of squares) {
-                if (!targets.find(t => t.x == square.x && t.y == square.y)) targets.push(square);
+            for (let piece of pieces) {
+                let squares = piece.getTargetSquares();
+                for (let square of squares) {
+                    if (!targets.find(t => t.x == square.x && t.y == square.y)) targets.push(square);
+                }
             }
-        }
 
-        return targets;
+            if (color == 'W') this.white.targets = targets;
+            else if (color == 'B') this.black.targets = targets;
+            else throw new Error(`Invalid color: ${color}`);
+        }
     }
 
     getPieces(color) {
@@ -224,11 +238,50 @@ class Board {
         else if (color == 'B') return this.black.pieces;
         else throw new Error(`Invalid color: ${color}`);
     }
-    
-    makeMove(piece, x, y){
+
+    makeMove(piece, x, y) {
         this.getSquare(piece.x, piece.y).piece = null;
         this.getSquare(x, y).piece = piece;
+        this.updatePiece(piece);
         piece.move(x, y);
+    }
+
+    isCheck(color) {
+        let king = this.getPieces(color).find(p => p.letter == 'K');
+
+        let targets;
+        if (color == 'W') targets = this.black.targets;
+        else if (color == 'B') targets = this.white.targets;
+        else throw new Error(`Invalid color: ${color}`);
+
+        if (targets.find(t => t.x == king.x && t.y == king.y)) return true;
+        else return false;
+    }
+
+    isCheckWithMove(piece, x, y) {
+        let board = this.clone();
+        piece = board.getPieces(piece.color).find(p => p.x == piece.x && p.y == piece.y);
+        board.makeMove(piece, x, y);
+        board.calculateTargets();
+        return board.isCheck(piece.color == 'W' ? 'B' : 'W');
+    }
+
+    updatePiece(piece) {
+        if (piece.color == 'W') {
+            for (let i = 0; i < this.white.pieces.length; i++) {
+                if (this.white.pieces[i].x == piece.x && this.white.pieces[i].y == piece.y && this.white.pieces[i].letter == piece.letter) {
+                    this.white.pieces[i] = piece;
+                    break;
+                }
+            }
+        } else if (piece.color == 'B') {
+            for (let i = 0; i < this.black.pieces.length; i++) {
+                if (this.black.pieces[i].x == piece.x && this.black.pieces[i].y == piece.y && this.black.pieces[i].letter == piece.letter) {
+                    this.black.pieces[i] = piece;
+                    break;
+                }
+            }
+        } else throw new Error(`Invalid piece color: ${piece.color}`);
     }
 }
 

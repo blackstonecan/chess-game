@@ -14,7 +14,7 @@ class Piece {
         this.board = board;
     }
 
-    move(x, y){
+    move(x, y) {
         this.x = x;
         this.y = y;
         this.touched = true;
@@ -43,15 +43,23 @@ class Pawn extends Piece {
 
     getAMR(color) {
         if (color == 'W') {
-            return new Rule([
-                new Movement("NE", 1),
-                new Movement("NW", 1)
-            ]);
+            return [
+                new Rule([
+                    new Movement("NE", 1)
+                ]),
+                new Rule([
+                    new Movement("NW", 1)
+                ])
+            ];
         } else if (color == 'B') {
-            return new Rule([
-                new Movement("SE", 1),
-                new Movement("SW", 1)
-            ]);
+            return [
+                new Rule([
+                    new Movement("SE", 1)
+                ]),
+                new Rule([
+                    new Movement("SW", 1)
+                ])
+            ];
         } else throw new Error("Invalid color");
     }
 
@@ -67,22 +75,32 @@ class Pawn extends Piece {
         } else throw new Error("Invalid color");
     }
 
-    getPotentialSquares(board) {
+    getPotentialSquares() {
         let potentialSquares = [];
 
-        let attackSquares = board.showRuleSquares(this.amr, board.getSquare(this.x, this.y));
+        let attackSquares = [];
+        for (let rule of this.amr) {
+            attackSquares.push(...this.board.showRuleSquares(rule, this.board.getSquare(this.x, this.y)));
+        };
         for (let square of attackSquares) {
             if (square.piece && square.piece.color != this.color) potentialSquares.push(square);
         }
 
-        if (!this.touched) potentialSquares.push(...board.showRuleSquares(this.fmr, board.getSquare(this.x, this.y)));
-        else potentialSquares.push(...board.showRuleSquares(this.gmr, board.getSquare(this.x, this.y)));
+        if (!this.touched) potentialSquares.push(...this.board.showRuleSquares(this.fmr, this.board.getSquare(this.x, this.y)));
+        else potentialSquares.push(...this.board.showRuleSquares(this.gmr, this.board.getSquare(this.x, this.y)));
+
+        potentialSquares = potentialSquares.filter(square => this.board.isCheckWithMove(this, square.x, square.y) == false);
 
         return potentialSquares;
     }
 
-    getTargetSquares(board) {
-        let targetSquares = board.showRuleSquares(this.amr, board.getSquare(this.x, this.y));
+    getTargetSquares() {
+        let targetSquares = [];
+
+        for (let rule of this.amr) {
+            targetSquares.push(...this.board.showRuleSquares(rule, this.board.getSquare(this.x, this.y)));
+        };
+
         return targetSquares;
     }
 
@@ -106,7 +124,7 @@ class Rook extends Piece {
                 new Movement("E", 8)
             ]),
             new Rule([
-                new Movement("A", 8)
+                new Movement("S", 8)
             ]),
             new Rule([
                 new Movement("W", 8)
@@ -114,18 +132,26 @@ class Rook extends Piece {
         ];
     }
 
-    getPotentialSquares(board) {
+    getPotentialSquares() {
         let potentialSquares = [];
 
         for (let rule of this.gmr) {
-            potentialSquares.push(...board.showRuleSquares(rule, board.getSquare(this.x, this.y)));
+            potentialSquares.push(...this.board.showRuleSquares(rule, this.board.getSquare(this.x, this.y)));
         }
+
+        potentialSquares = potentialSquares.filter(square => this.board.isCheckWithMove(this, square.x, square.y) == false);
 
         return potentialSquares;
     }
 
-    getTargetSquares(board) {
-        return this.getPotentialSquares(board);
+    getTargetSquares() {
+        let potentialSquares = [];
+
+        for (let rule of this.gmr) {
+            potentialSquares.push(...this.board.showRuleSquares(rule, this.board.getSquare(this.x, this.y)));
+        }
+
+        return potentialSquares;
     }
 
     clone() {
@@ -156,18 +182,26 @@ class Bishop extends Piece {
         ];
     }
 
-    getPotentialSquares(board) {
+    getPotentialSquares() {
         let potentialSquares = [];
 
         for (let rule of this.gmr) {
-            potentialSquares.push(...board.showRuleSquares(rule, board.getSquare(this.x, this.y)));
+            potentialSquares.push(...this.board.showRuleSquares(rule, this.board.getSquare(this.x, this.y)));
         }
+
+        potentialSquares = potentialSquares.filter(square => this.board.isCheckWithMove(this, square.x, square.y) == false);
 
         return potentialSquares;
     }
-    
-    getTargetSquares(board) {
-        return this.getPotentialSquares(board);
+
+    getTargetSquares() {
+        let potentialSquares = [];
+
+        for (let rule of this.gmr) {
+            potentialSquares.push(...this.board.showRuleSquares(rule, this.board.getSquare(this.x, this.y)));
+        }
+
+        return potentialSquares;
     }
 
     clone() {
@@ -218,18 +252,26 @@ class Knight extends Piece {
         ];
     }
 
-    getPotentialSquares(board) {
+    getPotentialSquares() {
         let potentialSquares = [];
 
         for (let rule of this.gmr) {
-            potentialSquares.push(...board.showRuleSquares(rule, board.getSquare(this.x, this.y)));
+            potentialSquares.push(...this.board.showRuleSquares(rule, this.board.getSquare(this.x, this.y)));
         }
+
+        potentialSquares = potentialSquares.filter(square => this.board.isCheckWithMove(this, square.x, square.y) == false);
 
         return potentialSquares;
     }
 
-    getTargetSquares(board) {
-        return this.getPotentialSquares(board);
+    getTargetSquares() {
+        let potentialSquares = [];
+
+        for (let rule of this.gmr) {
+            potentialSquares.push(...this.board.showRuleSquares(rule, this.board.getSquare(this.x, this.y)));
+        }
+
+        return potentialSquares;
     }
 
     clone() {
@@ -272,18 +314,26 @@ class Queen extends Piece {
         ];
     }
 
-    getPotentialSquares(board) {
+    getPotentialSquares() {
         let potentialSquares = [];
 
         for (let rule of this.gmr) {
-            potentialSquares.push(...board.showRuleSquares(rule, board.getSquare(this.x, this.y)));
+            potentialSquares.push(...this.board.showRuleSquares(rule, this.board.getSquare(this.x, this.y)));
         }
+
+        potentialSquares = potentialSquares.filter(square => this.board.isCheckWithMove(this, square.x, square.y) == false);
 
         return potentialSquares;
     }
-    
-    getTargetSquares(board) {
-        return this.getPotentialSquares(board);
+
+    getTargetSquares() {
+        let potentialSquares = [];
+
+        for (let rule of this.gmr) {
+            potentialSquares.push(...this.board.showRuleSquares(rule, this.board.getSquare(this.x, this.y)));
+        }
+
+        return potentialSquares;
     }
 
     clone() {
@@ -326,18 +376,36 @@ class King extends Piece {
         ];
     }
 
-    getPotentialSquares(board) {
+    getPotentialSquares() {
+        let potentialSquares = [];
+        let targetSquares = [];
+        let squares = [];
+
+        if (this.color == 'W') targetSquares = this.board.black.targets;
+        else if (this.color == 'B') targetSquares = this.board.white.targets;
+        else throw new Error("Invalid color");
+
+        for (let rule of this.gmr) {
+            potentialSquares.push(...this.board.showRuleSquares(rule, this.board.getSquare(this.x, this.y)));
+        }
+
+        for (let square of potentialSquares) {
+            if (!targetSquares.find(s => s.x == square.x && s.y == square.y)) squares.push(square);
+        }
+
+        squares = squares.filter(square => this.board.isCheckWithMove(this, square.x, square.y) == false);
+
+        return squares;
+    }
+
+    getTargetSquares() {
         let potentialSquares = [];
 
         for (let rule of this.gmr) {
-            potentialSquares.push(...board.showRuleSquares(rule, board.getSquare(this.x, this.y)));
+            potentialSquares.push(...this.board.showRuleSquares(rule, this.board.getSquare(this.x, this.y)));
         }
 
         return potentialSquares;
-    }
-
-    getTargetSquares(board) {
-        return this.getPotentialSquares(board);
     }
 
     clone() {
